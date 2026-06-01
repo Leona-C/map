@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Europe Luxury Route Map</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #f4f1ea;
+      font-family: "Inter", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+    #map {
+      width: 100%;
+      height: 100vh;
+      background: #f4f1ea;
+    }
+    .leaflet-container {
+      background: #f4f1ea;
+    }
+    .leaflet-control-attribution {
+      font-size: 10px;
+      background: rgba(255,255,255,0.72);
+      border-radius: 10px;
+      padding: 2px 8px;
+      color: #777;
+      backdrop-filter: blur(6px);
+    }
+    .hover-label {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(0,0,0,0.18);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      border-radius: 4px;
+      color: #333;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .leaflet-tooltip.hover-label::before {
+      display: none;
+    }
+    .pin-wrap {
+      position: relative;
+      width: 28px;
+      height: 38px;
+    }
+    .pin {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 28px;
+      height: 38px;
+      background: #0b5f95;
+      border-radius: 54% 54% 54% 54% / 50% 50% 68% 68%;
+      clip-path: path('M14 0C6.4 0 0 6.2 0 13.9c0 10.1 11 20.5 13.1 22.4.5.4 1.3.4 1.8 0C17 34.4 28 24 28 13.9 28 6.2 21.6 0 14 0Z');
+      box-shadow: 0 5px 12px rgba(0,0,0,0.22);
+    }
+    .pin::after {
+      content: "";
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      left: 7.5px;
+      top: 7px;
+      background: #fff;
+      border-radius: 50%;
+    }
+    .leaflet-interactive:focus {
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    const map = L.map('map', {
+      zoomControl: true,
+      scrollWheelZoom: true,
+      attributionControl: true
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    const gold = '#b99656';
+    const goldSoft = '#ccb384';
+
+    const points = {
+      viennaAirport: { hoverLabel: 'Day 1 비엔나 공항', coords: [48.1103, 16.5697] },
+      vienna: { hoverLabel: 'Day 1-3 비엔나', coords: [48.2082, 16.3738] },
+      salzburg: { hoverLabel: 'Day 3-5 잘츠부르크', coords: [47.8095, 13.0550] },
+      hallstatt: { hoverLabel: 'Day 4 할슈타트', coords: [47.5622, 13.6493] },
+      elmau: { hoverLabel: 'Day 5 엘마우', coords: [47.4836, 11.1391] },
+      tirol: { hoverLabel: 'Day 5-6 티롤', coords: [47.3305, 11.1878] },
+      lucerne: { hoverLabel: 'Day 6-8 루체른', coords: [47.0502, 8.3093] },
+      zurichAirport: { hoverLabel: 'Day 8 취리히 공항', coords: [47.4582, 8.5555] },
+      amsterdamAirport: { hoverLabel: 'Day 8 암스테르담 공항', coords: [52.3086, 4.7639] }
+    };
+
+    function makePinIcon() {
+      return L.divIcon({
+        className: '',
+        html: '<div class="pin-wrap"><div class="pin"></div></div>',
+        iconSize: [28, 38],
+        iconAnchor: [14, 38],
+        tooltipAnchor: [14, -20]
+      });
+    }
+
+    Object.values(points).forEach(point => {
+      const marker = L.marker(point.coords, { icon: makePinIcon(), riseOnHover: true }).addTo(map);
+      marker.bindTooltip(point.hoverLabel, {
+        permanent: false,
+        direction: 'left',
+        offset: [-10, -18],
+        className: 'hover-label',
+        opacity: 1,
+        sticky: false
+      });
+    });
+
+    const carStyle = { color: gold, weight: 4, opacity: 0.95, lineCap: 'round' };
+    const flightStyle = { color: goldSoft, weight: 3, opacity: 0.95, dashArray: '4 10', lineCap: 'round' };
+
+    const carSegments = [
+      ['viennaAirport', 'vienna'],
+      ['vienna', 'salzburg'],
+      ['salzburg', 'hallstatt'],
+      ['hallstatt', 'salzburg'],
+      ['salzburg', 'elmau'],
+      ['elmau', 'tirol'],
+      ['tirol', 'lucerne'],
+      ['lucerne', 'zurichAirport']
+    ];
+
+    carSegments.forEach(([fromKey, toKey]) => {
+      L.polyline([points[fromKey].coords, points[toKey].coords], carStyle).addTo(map);
+    });
+
+    L.polyline([
+      points.zurichAirport.coords,
+      points.amsterdamAirport.coords
+    ], flightStyle).addTo(map);
+
+    const bounds = L.latLngBounds(Object.values(points).map(p => p.coords));
+    map.fitBounds(bounds.pad(0.16));
+  </script>
+</body>
+</html>
